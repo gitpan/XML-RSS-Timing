@@ -1,6 +1,12 @@
 Revision history for Perl extension XML::RSS::Timing
-                                        Time-stamp: "2004-01-25 22:24:10 AST"
+                                        Time-stamp: "2004-05-19 12:49:38 ADT"
 
+
+2004-05-19  Sean M. Burke  sburke@cpan.org
+	* Release 1.07
+	* Minor bugfix version: I was missing a min_age alias to the
+	minAge method.
+	
 2004-01-25  Sean M. Burke  sburke@cpan.org
 	* Release 1.06
 	* In the previous release, 090_date_conv.t spuriously threw some

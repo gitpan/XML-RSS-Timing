@@ -10,7 +10,7 @@ use Carp ();
 use vars qw($VERSION);
 use Time::Local ();
 
-$VERSION = '1.06';
+$VERSION = '1.07';
 BEGIN { *DEBUG = sub () {0} unless defined &DEBUG; }   # set DEBUG level
 
 use constant  HOUR_SEC => 60 * 60;
@@ -775,6 +775,7 @@ sub update_frequency { shift->updateFrequency(@_) }
 sub next_update      { shift->nextUpdate(     @_) }
 sub last_polled      { shift->lastPolled(     @_) }
 sub max_age          { shift->maxAge(         @_) }
+sub min_age          { shift->minAge(         @_) }
 
 ###########################################################################
 1;
