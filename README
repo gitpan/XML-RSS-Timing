@@ -1,5 +1,5 @@
 README for XML-RSS-Timing
-                                        Time-stamp: "2004-01-19 18:28:49 AST"
+                                        Time-stamp: "2004-01-24 22:12:37 AST"
 
 RSS/RDF modules can use the skipHours, skipDays, ttl, and sy:update*
 elements to express what days/times they won't update, so that RSS/RDF
@@ -30,3 +30,7 @@ something like this command:
 
 See "perldoc perlmodinstall" for more information and advice.
 
+
+
+This module doesn't depend on XML::RSS, nor in fact have any
+particular relationship with it.

@@ -1,11 +1,17 @@
 Revision history for Perl extension XML::RSS::Timing
-                                        Time-stamp: "2004-01-15 00:16:37 AST"
+                                        Time-stamp: "2004-01-24 22:13:35 AST"
 
 2004-01-24  Sean M. Burke  sburke@cpan.org
-        * Release 1.02
-        * Added minAge
+        * Release 1.05
+        * No real changes over 1.04, just fixing broken ChangeLog, and
+	adding a note to README and Timing.pm docs saying that we don't
+	depend on XML::RSS.
+	
+2004-01-24  Sean M. Burke  sburke@cpan.org
+        * Release 1.04
+        * Added fuller date-format support for updateBase
 
-2004-01-18  Sean M. Burke  sburke@cpan.org
+2004-01-24  Sean M. Burke  sburke@cpan.org
         * Release 1.02
         * Prerelease version
         * Added maxAge

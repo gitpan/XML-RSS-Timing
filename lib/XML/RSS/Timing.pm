@@ -10,7 +10,7 @@ use Carp ();
 use vars qw($VERSION);
 use Time::Local ();
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 BEGIN { *DEBUG = sub () {0} unless defined &DEBUG; }   # set DEBUG level
 
 use constant  HOUR_SEC => 60 * 60;
@@ -70,6 +70,11 @@ poll a feed more than once during such a period.
 This Perl module is for taking in the RSS/RDF C<skipHours>, C<skipDays>,
 C<ttl>, and C<sy:update*> elements' values, and figuring out when they
 say new content might be available.
+
+Note:
+This module doesn't depend on XML::RSS, nor in fact have any
+particular relationship with it.
+
 
 =head1 OVERVIEW
 
