@@ -9,7 +9,17 @@ ok 1;
 #sub XML::RSS::Timing::DEBUG () {5}
 use XML::RSS::Timing;
 
-sub r {my $x; eval { $x = XML::RSS::Timing->_iso_date_to_epoch($_[0]) }; return $x; }
+use Time::Local;
+my $E1970 = timegm(0,0,0,1,0,70);
+ok 1;
+print "# E1970 = $E1970 s  (", scalar(gmtime($E1970)), ")\n";
+
+sub r {
+  my $x;
+  eval { $x = XML::RSS::Timing->_iso_date_to_epoch($_[0]) };
+  $x -= $E1970 if defined $x;
+  return $x;
+}
 
 ok r('1997');
 ok r('1997-07');
@@ -33,11 +43,6 @@ ok !r('2000-13-29');
 ok !r('2000-12-33');
 
 print "# OK, now testing accuracy...\n";
-
-use Time::Local;
-my $E1970 = timegm(0,0,0,1,0,70);
-ok 1;
-print "# E1970 = $E1970 s  (", scalar(gmtime($E1970)), ")\n";
 
 ok r('1970'), 0;
 ok r('1970-01'), 0;

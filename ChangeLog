@@ -1,6 +1,12 @@
 Revision history for Perl extension XML::RSS::Timing
-                                        Time-stamp: "2004-01-24 22:13:35 AST"
+                                        Time-stamp: "2004-01-25 22:24:10 AST"
 
+2004-01-25  Sean M. Burke  sburke@cpan.org
+	* Release 1.06
+	* In the previous release, 090_date_conv.t spuriously threw some
+	errors under MacOS and other systems whose epoch doesn't start at
+	1970-01-01T00:00.  Fixed.
+	
 2004-01-24  Sean M. Burke  sburke@cpan.org
         * Release 1.05
         * No real changes over 1.04, just fixing broken ChangeLog, and

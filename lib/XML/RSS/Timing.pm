@@ -10,7 +10,7 @@ use Carp ();
 use vars qw($VERSION);
 use Time::Local ();
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 BEGIN { *DEBUG = sub () {0} unless defined &DEBUG; }   # set DEBUG level
 
 use constant  HOUR_SEC => 60 * 60;
