@@ -10,7 +10,7 @@ use Carp ();
 use vars qw($VERSION);
 use Time::Local ();
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 BEGIN { *DEBUG = sub () {0} unless defined &DEBUG; }   # set DEBUG level
 
 use constant  HOUR_SEC => 60 * 60;
@@ -42,14 +42,14 @@ XML::RSS::Timing - understanding RSS skipHours, skipDays, sy:update*
   ...after getting an RSS/RDF feed that contains the following:
      <sy:updateFrequency>3</sy:updateFrequency>
      <sy:updatePeriod>hourly</sy:updatePeriod>
-     <sy:updateBase>1970-01-01T08:20</sy:updateBase>
+     <sy:updateBase>1970-01-01T08:20+00:00</sy:updateBase>
 
   use XML::RSS::Timing;
   my $timing = XML::RSS::Timing->new;
   $timing->lastPolled(   time() );
   $timing->updatePeriod( 'hourly' );
   $timing->updateFrequency( 3 );
-  $timing->updateBase( '1970-01-01T08:20' );
+  $timing->updateBase( '1970-01-01T08:20+00:00' );
   
   # Find out the soonest I can expect new content:
   my $then = $timing->nextUpdate;
@@ -153,7 +153,7 @@ sub new {  # Vanilla constructor
 sub init {
   my $self = $_[0];
   $self->use_exceptions(1);
-  $self->updateBase('1970-01-01T00:00');
+  $self->updateBase('1970-01-01T00:00+00:00');
   return;
 }
 
@@ -242,17 +242,16 @@ This sets the given C<$timing> object's
 updateFrequency value from the feed's (optional) C<sy:updateFrequency>
 element.  This has to be a date in one of these formats:
 
-=over
+         1997
+         1997-07
+         1997-07-16
+         1997-07-16T19:20
+         1997-07-16T19:20Z
+         1997-07-16T19:20+01:00
+         1997-07-16T19:20:30+01:00
+         1997-07-16T19:20:30.45+01:00
 
-=item I<yyyy-mm-dd>C<T>I<hh:mm>
-
-=item I<yyyy-mm-dd>C<T>I<hh:mm>C<->I<hh:mm>
-
-=item I<yyyy-mm-dd>C<T>I<hh:mm>C<+>I<hh:mm>
-
-=back
-
-The default value is "1970-01-01T00:00".
+The default value is "1970-01-01T00:00Z".
 
 =cut
 
@@ -618,32 +617,66 @@ sub _reckon_next_update_starts {
 
 sub _iso_date_to_epoch {
   my($self, $date) = @_;
-  if( my($Y,$M,$D, $h,$m, $tz_sign, $tz_h, $tz_m ) =
-    $date =~  # Then regexp matches a subset of ISO8601 formats
-      m/^
-        ([12]\d\d\d)-([01]\d)-([0123]\d)  # year month day
-        T([012]\d):([0-5]\d)  # explicit time
-        (?:                   # optional TZ offset
-          ([-+])
-          ([012]\d):([0-56]\d) # hour and minute
+  return undef unless defined $date;
+
+  if(
+    my( $Y,$M,$D,  $h,$m, $s, $s_fract,   $tz_sign, $tz_h, $tz_m ) =
+    $date =~
+      # This regexp matches basically ISO 8601 except that the "Z" is optional.
+      
+      m<^
+        (\d\d\d\d)		# year
+        (?:
+          -([01]\d)		# month
+          (?:
+            -([0123]\d)  # day
+            (?:
+              T([012]\d):([012345]\d)	# hh:mm
+              (?:
+                :([0123456]\d)		# seconds
+                (?:
+                  (\.\d+)		# fractions of a second
+                )?
+              )?
+              #
+              # And now the TZ:
+              #
+              (?:
+                Z		# Zulu
+               |
+                (?:		# or by offset:
+                  ([-+])
+                  ([012]\d):([012345]\d)     # hh:mm, with leading '+' or '-'
+                )
+              )?
+            )?
+          )?
         )?
         $
-       /xs
+      >sx
+
   ) {
+
     if(DEBUG) {
-      print "# Date matching $Y-$M-$D T$h:$m",
-        $tz_sign ? " TZ$tz_sign$tz_h:$tz_m" : " (no TZ)",
-        "\n"
+      printf "# Date %s matches =>  %s-%s-%s T%s:%s:%s.%s   TZ: %s%s:%s\n",
+        $date,
+        map defined($_) ? $_ : "_",
+          ( $Y,$M,$D,  $h,$m, $s, $s_fract,   $tz_sign, $tz_h, $tz_m )
       ;
     }
-  
-    return $self->boom("Year out of range: $Y")  if $Y < 1902 or $Y > 2037;
-    return $self->boom("Month out of range: $M") if $M < 1 or $M > 12;
-    return $self->boom("Day out of range: $M")   if $D < 1 or $D > 31;
     
+    $M = 1 unless defined $M;
+    $D = 1 unless defined $D;
     $h = 0 unless defined $h;
     $m = 0 unless defined $m;
+    $s = 0 unless defined $s;
+
+    return $self->boom("Year out of range: $Y")  if $Y < 1902 or $Y > 2037;
+    return $self->boom("Month out of range: $M") if $M < 1 or $M > 12;
+    return $self->boom("Day out of range: $D")   if $D < 1 or $D > 31;
     return $self->boom("Hour out of range: $h")   if $h < 0 or $h > 23;
+    return $self->boom("Minute out of range: $m")   if $h < 0 or $h > 59;
+    return $self->boom("Second out of range: $s")   if $h < 0 or $h > 60;
 
     my $tz_offset = 0;
     if(defined $tz_sign) {
@@ -651,13 +684,15 @@ sub _iso_date_to_epoch {
       $tz_offset = 0 - $tz_offset   if $tz_sign eq '-';
     }
 
-    my $time = eval { Time::Local::timegm( 0,$m,$h, $D,$M-1,$Y-1900 ) };
+    my $time = eval { Time::Local::timegm( $s,$m,$h, $D,$M-1,$Y-1900 ) };
     return $self->boom("Couldn't convert $date to an exact moment")
      unless defined $time;
-    
+
+    $time++ if $s_fract and $s_fract >= .5;
     $time -= $tz_offset;
     return $time;
   } else {
+    DEBUG and print "# Date $date doesn't match.\n";
     return undef; 
   }
 }
@@ -752,10 +787,13 @@ time, or as updateBase time) before the year 1902 or after the year
 inherent to the RSS/RDF specs.
 
 
+=head1
+
+
 =head1 BUGS
 
-None yet known.
-
+Although the spec places no such limit, this implementation requires
+the updateBase's date to be between 1902 and 2038 (noninclusive).
 
 =head1 SEE ALSO
 
